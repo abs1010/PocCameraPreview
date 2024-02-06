@@ -62,7 +62,7 @@ class ViewController: UIViewController {
                                       AVMetadataObject.ObjectType.qr]
     private var captureSession = AVCaptureSession()
     private var videoPreviewLayer: AVCaptureVideoPreviewLayer?
-    private var qrCodeFrameView: UIView?
+    private var qrCodeFrameView = UIView()
     private var screenSize = UIScreen.main.bounds
     private var screenHeight:CGFloat = 0
     private let captureMetadataOutput = AVCaptureMetadataOutput()
@@ -184,6 +184,11 @@ class ViewController: UIViewController {
         videoPreviewLayer?.frame = view.layer.bounds
         videoPreviewLayer?.connection?.videoOrientation = AVCaptureVideoOrientation.portrait
         
+        // Start video capture.
+        DispatchQueue.global().async {
+            self.captureSession.startRunning()
+        }
+        
         drawOverlays()
     }
     
@@ -197,38 +202,32 @@ class ViewController: UIViewController {
         overlayPath.append(transparentPath)
         overlayPath.usesEvenOddFillRule = true
         let fillLayer = CAShapeLayer()
-        
         fillLayer.path = overlayPath.cgPath
         fillLayer.fillRule = CAShapeLayerFillRule.evenOdd
         fillLayer.fillColor = UIColor(red: 0, green: 0, blue: 0, alpha: 0.5).cgColor
-        
         videoPreviewLayer?.layoutSublayers()
         videoPreviewLayer?.layoutIfNeeded()
         
         view.layer.addSublayer(videoPreviewLayer!)
+
+        // Initialize a Frame to highlight the scanned area
         
-        // Start video capture.
-        DispatchQueue.global().async {
-            self.captureSession.startRunning()
-        }
+        let scannedArea = CGRect(x: xCor, 
+                                 y: yCor,
+                                 width: (screenSize.width*0.8),
+                                 height: screenHeight)
+        let rectOfInterest = videoPreviewLayer?.metadataOutputRectConverted(fromLayerRect: scannedArea)
         
-        let scanRect = CGRect(x: xCor, y: yCor, width: (screenSize.width*0.8), height: screenHeight)
-        let rectOfInterest = videoPreviewLayer?.metadataOutputRectConverted(fromLayerRect: scanRect)
         if let rOI = rectOfInterest{
             captureMetadataOutput.rectOfInterest = rOI
         }
-        // Initialize QR Code Frame to highlight the QR code
-        qrCodeFrameView = UIView()
-        qrCodeFrameView?.frame = CGRect(x: 0, y: 0, width: (screenSize.width * 0.8), height: screenHeight)
         
-        if let qrCodeFrameView = qrCodeFrameView {
-            self.view.addSubview(qrCodeFrameView)
-            self.view.bringSubviewToFront(qrCodeFrameView)
-            qrCodeFrameView.layer.insertSublayer(fillLayer, below: videoPreviewLayer!)
-            qrCodeFrameView.layoutIfNeeded()
-            qrCodeFrameView.layoutSubviews()
-            qrCodeFrameView.setNeedsUpdateConstraints()
-        }
+        view.addSubview(qrCodeFrameView)
+        view.bringSubviewToFront(qrCodeFrameView)
+        qrCodeFrameView.layer.insertSublayer(fillLayer, below: videoPreviewLayer!)
+        qrCodeFrameView.layoutIfNeeded()
+        qrCodeFrameView.layoutSubviews()
+        qrCodeFrameView.setNeedsUpdateConstraints()
     }
     
     private func setFlashStatus(device: AVCaptureDevice, mode: AVCaptureDevice.TorchMode) {
@@ -289,7 +288,7 @@ extension ViewController: AVCaptureMetadataOutputObjectsDelegate {
     public func metadataOutput(_ output: AVCaptureMetadataOutput, didOutput metadataObjects: [AVMetadataObject], from connection: AVCaptureConnection) {
         // Check if the metadataObjects array is not nil and it contains at least one object.
         if metadataObjects.count == 0 {
-            qrCodeFrameView?.frame = CGRect.zero
+            qrCodeFrameView.frame = CGRect.zero
             return
         }
         // Get the metadata object.
