@@ -78,7 +78,7 @@ class ViewController: UIViewController {
     override public func viewDidLoad() {
         super.viewDidLoad()
         screenHeight = (screenSize.height * 0.5)
-        initBarcodeComponents()
+        initComponents()
         setupConstraints()
     }
     
@@ -145,7 +145,7 @@ class ViewController: UIViewController {
     }
     
     // Inititlize components
-    func initBarcodeComponents(){
+    func initComponents(){
         
         let deviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInWideAngleCamera], mediaType: AVMediaType.video, position: .back)
         // Get the back-facing camera for capturing videos
@@ -184,12 +184,10 @@ class ViewController: UIViewController {
         videoPreviewLayer?.frame = view.layer.bounds
         videoPreviewLayer?.connection?.videoOrientation = AVCaptureVideoOrientation.portrait
         
-        self.drawUIOverlays{
-        }
+        drawOverlays()
     }
     
-    
-    func drawUIOverlays(withCompletion processCompletionCallback: () -> Void) {
+    func drawOverlays() {
         let overlayPath = UIBezierPath(rect: view.bounds)
         let transparentPath = UIBezierPath(rect: CGRect(x: (screenSize.width / 2) - 75,
                                                         y: (screenSize.height - (screenSize.height*0.6))/2,
@@ -231,8 +229,6 @@ class ViewController: UIViewController {
             qrCodeFrameView.layoutSubviews()
             qrCodeFrameView.setNeedsUpdateConstraints()
         }
-        
-        processCompletionCallback()
     }
     
     private func setFlashStatus(device: AVCaptureDevice, mode: AVCaptureDevice.TorchMode) {
