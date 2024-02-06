@@ -240,10 +240,11 @@ class ViewController: UIViewController {
     
     
     func drawUIOverlays(withCompletion processCompletionCallback: () -> Void){
-        //    func drawUIOverlays(){
         let overlayPath = UIBezierPath(rect: view.bounds)
-        
-        let transparentPath = UIBezierPath(rect: CGRect(x: xCor, y: yCor, width: self.isOrientationPortrait ? (screenSize.width*0.8) : (screenSize.height*0.8), height: screenHeight))
+        let transparentPath = UIBezierPath(rect: CGRect(x: (screenSize.width / 2) - 75,
+                                                        y: (screenSize.height - (screenSize.height*0.6))/2,
+                                                        width: 150,
+                                                        height: screenSize.height * 0.6))
         
         overlayPath.append(transparentPath)
         overlayPath.usesEvenOddFillRule = true
@@ -290,7 +291,6 @@ class ViewController: UIViewController {
             self.view.bringSubviewToFront(switchCameraButton)
         }
         
-        self.drawLine()
         processCompletionCallback()
     }
     
@@ -396,26 +396,6 @@ class ViewController: UIViewController {
         }
         
         return nil;
-    }
-    
-    /// Draw scan line
-    private func drawLine() {
-        self.view.addSubview(scanLine)
-        //scanLine.backgroundColor = hexStringToUIColor(hex: SwiftFlutterBarcodeScannerPlugin.lineColor)
-        scanlineRect = CGRect(x: xCor, y: yCor, width:self.isOrientationPortrait ? (screenSize.width*0.8) : (screenSize.height*0.8), height: 2)
-        
-        scanlineStartY = yCor
-        
-        var stopY:CGFloat
-        
-//        if SwiftFlutterBarcodeScannerPlugin.scanMode == ScanMode.QR.index {
-//            let w = self.isOrientationPortrait ? (screenSize.width*0.8) : (screenSize.height*0.6)
-//            stopY = (yCor + w)
-//        } else {
-            let w = self.isOrientationPortrait ? (screenSize.width * 0.5) : (screenSize.height * 0.5)
-            stopY = (yCor + w)
-        //}
-        scanlineStopY = stopY
     }
     
     /// Animate scan line vertically
