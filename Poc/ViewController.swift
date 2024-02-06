@@ -63,23 +63,20 @@ class ViewController: UIViewController {
     private var captureSession = AVCaptureSession()
     private var videoPreviewLayer: AVCaptureVideoPreviewLayer?
     private var qrCodeFrameView: UIView?
-    var screenSize = UIScreen.main.bounds
-    private var isOrientationPortrait = true
-    var screenHeight:CGFloat = 0
-    let captureMetadataOutput = AVCaptureMetadataOutput()
+    private var screenSize = UIScreen.main.bounds
+    private var screenHeight:CGFloat = 0
+    private let captureMetadataOutput = AVCaptureMetadataOutput()
     
-    private lazy var xCor: CGFloat! = {
-        return self.isOrientationPortrait ? (screenSize.width - (screenSize.width*0.8))/2 :
-        (screenSize.width - (screenSize.width*0.6))/2
+    private lazy var xCor: CGFloat = {
+        return (screenSize.width - (screenSize.width*0.8))/2
     }()
-    private lazy var yCor: CGFloat! = {
-        return self.isOrientationPortrait ? (screenSize.height - (screenSize.width*0.8))/2 :
-        (screenSize.height - (screenSize.height*0.8))/2
+    
+    private lazy var yCor: CGFloat = {
+        return (screenSize.height - (screenSize.width*0.8))/2
     }()
     
     override public func viewDidLoad() {
         super.viewDidLoad()
-        self.isOrientationPortrait = true
         screenHeight = (screenSize.height * 0.5)
         initBarcodeComponents()
         setupConstraints()
@@ -166,8 +163,7 @@ class ViewController: UIViewController {
                 captureSession.addInput(input)
             }
             // Initialize a AVCaptureMetadataOutput object and set it as the output device to the capture session.
-            
-            let captureRectWidth = self.isOrientationPortrait ? (screenSize.width*0.8):(screenSize.height*0.8)
+            let captureRectWidth = (screenSize.width*0.8)
             
             captureMetadataOutput.rectOfInterest = CGRect(x: xCor, y: yCor, width: captureRectWidth, height: screenHeight)
             if captureSession.outputs.isEmpty {
@@ -193,7 +189,7 @@ class ViewController: UIViewController {
     }
     
     
-    func drawUIOverlays(withCompletion processCompletionCallback: () -> Void){
+    func drawUIOverlays(withCompletion processCompletionCallback: () -> Void) {
         let overlayPath = UIBezierPath(rect: view.bounds)
         let transparentPath = UIBezierPath(rect: CGRect(x: (screenSize.width / 2) - 75,
                                                         y: (screenSize.height - (screenSize.height*0.6))/2,
@@ -213,30 +209,24 @@ class ViewController: UIViewController {
         
         view.layer.addSublayer(videoPreviewLayer!)
         
-        
         // Start video capture.
         DispatchQueue.global().async {
             self.captureSession.startRunning()
         }
         
-        let scanRect = CGRect(x: xCor, y: yCor, width: self.isOrientationPortrait ? (screenSize.width*0.8) : (screenSize.height*0.8), height: screenHeight)
-        
-        
+        let scanRect = CGRect(x: xCor, y: yCor, width: (screenSize.width*0.8), height: screenHeight)
         let rectOfInterest = videoPreviewLayer?.metadataOutputRectConverted(fromLayerRect: scanRect)
         if let rOI = rectOfInterest{
             captureMetadataOutput.rectOfInterest = rOI
         }
         // Initialize QR Code Frame to highlight the QR code
         qrCodeFrameView = UIView()
-        
-        qrCodeFrameView!.frame = CGRect(x: 0, y: 0, width: self.isOrientationPortrait ? (screenSize.width * 0.8) : (screenSize.height * 0.8), height: screenHeight)
-        
+        qrCodeFrameView?.frame = CGRect(x: 0, y: 0, width: (screenSize.width * 0.8), height: screenHeight)
         
         if let qrCodeFrameView = qrCodeFrameView {
             self.view.addSubview(qrCodeFrameView)
             self.view.bringSubviewToFront(qrCodeFrameView)
             qrCodeFrameView.layer.insertSublayer(fillLayer, below: videoPreviewLayer!)
-            //            self.view.bringSubviewToFront(flashIcon)
             qrCodeFrameView.layoutIfNeeded()
             qrCodeFrameView.layoutSubviews()
             qrCodeFrameView.setNeedsUpdateConstraints()
